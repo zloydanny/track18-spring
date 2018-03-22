@@ -3,6 +3,7 @@ package ru.track.json;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 public class JsonWriter {
 
     // В зависимости от типа объекта вызывает соответствующий способ сериализации
-    public static String toJson(@Nullable Object object) {
+    public static String toJson(@Nullable Object object) throws IllegalAccessException {
         if (object == null) {
             return "null";
         }
@@ -58,18 +59,28 @@ public class JsonWriter {
      * @return строковое представление массива: [item1, item2, ...]
      */
     @NotNull
-    private static String toJsonArray(@NotNull Object object) {
+    private static String toJsonArray(@NotNull Object object) throws IllegalAccessException {
         int length = Array.getLength(object);
-        // TODO: implement!
+        StringBuilder sb = new StringBuilder("[");
 
-        return null;
+        for(int i = 0; i < length; i++){
+            sb.append(toJson(Array.get(object, i)));
+            if(i != length - 1){
+                sb.append(",");
+            }
+        }
+        sb.append("]");
+
+        return sb.toString();
+
+
     }
 
     /**
      * В 1 шаг приводится к Collection
      */
     @NotNull
-    private static String toJsonCollection(@NotNull Object object) {
+    private static String toJsonCollection(@NotNull Object object) throws IllegalAccessException {
         Collection collection = (Collection) object;
         return toJsonArray(collection.toArray());
     }
@@ -81,10 +92,19 @@ public class JsonWriter {
      * На входе мы проверили, что это Map, можно просто кастовать Map map = (Map) object;
      */
     @NotNull
-    private static String toJsonMap(@NotNull Object object) {
-        // TODO: implement!
+    private static String toJsonMap(@NotNull Object object) throws IllegalAccessException {
+        Map<String, String> formatedMap = new LinkedHashMap<>();
+        Map map = (Map) object;
 
-        return null;
+
+        for(Object obj : map.entrySet()){
+            final Map.Entry ent = (Map.Entry) obj;
+            Object key = ent.getKey();
+            Object value = ent.getValue();
+            
+        }
+
+
         // Можно воспользоваться этим методом, если сохранить все поля в новой мапе уже в строковом представлении
 //        return formatObject(stringMap);
     }
@@ -106,12 +126,12 @@ public class JsonWriter {
      * и воспользоваться методом {@link #formatObject(Map)}
      */
     @NotNull
-    private static String toJsonObject(@NotNull Object object) {
+    private static String toJsonObject(@NotNull Object object) throws IllegalAccessException {
         Class clazz = object.getClass();
-        // TODO: implement!
+        Field[] fields = clazz.getDeclaredFields();
+        Map<String, String> stringStringMap = new LinkedHashMap<>();
 
-
-        return null;
+        return formatObject(stringStringMap);
     }
 
     /**
